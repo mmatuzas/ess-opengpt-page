@@ -1,0 +1,14 @@
+# Environment variables
+.env.local
+.env
+.env.production.local
+.env.development.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Vercel
+.vercel

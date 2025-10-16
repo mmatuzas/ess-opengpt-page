@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteGPT Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
+        }
+        .chatbot-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+        .chatbot-iframe {
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            color: #666;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10000;
+        }
+        .close-button:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .chatbot-wrapper {
+            position: relative;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+        .logo-placeholder {
+            width: 200px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0 auto;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .description {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+        }
+        .description h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .description p {
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        .action-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .launch-ai {
+            background: #28a745;
+            color: white;
+        }
+        .launch-ai:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        .download-extension {
+            background: #6f42c1;
+            color: white;
+        }
+        .download-extension:hover {
+            background: #5a32a3;
+            transform: translateY(-2px);
+        }
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .extension-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+        .auth-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .extension-modal {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: left;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .auth-modal h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .auth-modal p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .email-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .email-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .verify-button {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .verify-button:hover {
+            background: #0056b3;
+        }
+        .verify-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .extension-modal h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .extension-modal .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .extension-modal .close-btn:hover {
+            color: #333;
+        }
+        .download-link {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: background 0.3s ease;
+        }
+        .download-link:hover {
+            background: #218838;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Overlay -->
+    <div class="auth-overlay" id="auth-overlay">
+        <div class="auth-modal">
+            <h2>Access Required</h2>
+            <p>Please enter your email address to access the Brand Builders Academy AI Assistant.</p>
+            <input type="email" class="email-input" id="email-input" placeholder="Enter your email address" />
+            <button class="verify-button" id="verify-button" onclick="verifyEmail()">Verify Access</button>
+            <div class="error-message" id="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Extension Download Overlay -->
+    <div class="extension-overlay" id="extension-overlay">
+        <div class="extension-modal">
+            <button class="close-btn" onclick="closeExtensionModal()">&times;</button>
+            <h2>Download Chrome Extension</h2>
+            
+            <p>Get the Brand Builders Academy Chrome Extension to access the AI assistant on any website!</p>
+            
+            <div style="text-align: center;">
+                <a href="https://drive.google.com/uc?export=download&id=1GA2Vi3WUz3Ew_s9aprv7GSUQeQDiQVuZ" 
+                   class="download-link" 
+                   target="_blank">
+                    📥 Download Extension
+                </a>
+            </div>
+            
+            <div class="instructions">
+                <h3>Video Tutorial:</h3>
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; margin-bottom: 20px;">
+                    <iframe src="https://www.loom.com/embed/17068a39d86541df8c64d3f15f286d2b?sid=841686a9-8f98-40e9-9516-f531a42c88e2" 
+                            frameborder="0" 
+                            webkitallowfullscreen 
+                            mozallowfullscreen 
+                            allowfullscreen 
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 8px;">
+                    </iframe>
+                </div>
+                
+                <h3>Installation Instructions:</h3>
+                <ol>
+                    <li><strong>Download the file</strong> - Click the download button above to get the extension zip file</li>
+                    <li><strong>Unzip the file</strong> - Extract the downloaded zip file to a folder on your computer</li>
+                    <li><strong>Open Chrome Extensions</strong> - Go to <a href="chrome://extensions/" target="_blank" style="color: #007bff; text-decoration: none;">chrome://extensions/</a> in your Chrome browser</li>
+                    <li><strong>Enable Developer Mode</strong> - Toggle the "Developer mode" switch in the top right corner</li>
+                    <li><strong>Load the Extension</strong> - Click "Load unpacked" and select the unzipped extension folder</li>
+                    <li><strong>Pin the Extension</strong> - Click the puzzle piece icon in Chrome toolbar, then pin the Brand Builders Academy extension</li>
+                    <li><strong>Start Using</strong> - Click the extension icon to access the AI assistant on any website!</li>
+                </ol>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <strong>💡 Tip:</strong> After installation, you can access the AI assistant by clicking the extension icon in your Chrome toolbar while browsing any website.
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="logo">
+            <img src="logo.png" alt="Brand Builders Academy">
+        </div>
+        
+        <div class="description">
+            <h1>Welcome to Brand Builders Academy AI Assistant</h1>
+            <p>Get instant answers to all your brand building questions! Our AI assistant is specially trained to help Brand Builders Academy members with course content, strategies, implementation tips, and personalized guidance for growing your brand.</p>
+            <p>Whether you're looking for clarification on specific lessons, need help with your brand strategy, or want actionable advice for your business, our AI is here to support your journey to building a successful brand.</p>
+        </div>
+        
+        <div class="button-container">
+            <button class="action-button launch-ai" onclick="openChatbot()">🚀 Launch AI Assistant</button>
+            <button class="action-button download-extension" onclick="downloadExtension()">📥 Download Chrome Extension</button>
+        </div>
+    </div>
+
+    <div class="chatbot-container" id="chatbot-container">
+        <div class="chatbot-wrapper">
+            <button class="close-button" onclick="closeChatbot()">&times;</button>
+            <iframe
+                src="https://sitegpt.ai/c/78ec34ef-cb0f-4220-ab6b-eae8c52c7548"
+                width="560"
+                height="840"
+                frameborder="0"
+                class="chatbot-iframe">
+            </iframe>
+        </div>
+    </div>
+
+
+    <script>
+        const API_BASE_URL = 'https://ess-backend-api.vercel.app';
+        
+        // Check if user is already authenticated and re-verify on each load
+        window.addEventListener('load', async function() {
+            const storedEmail = sessionStorage.getItem('bba_user_email');
+            const isAuthenticated = sessionStorage.getItem('bba_authenticated');
+            
+            if (isAuthenticated === 'true' && storedEmail) {
+                // Re-verify the stored email on page load
+                try {
+                    const chatURL = await getChatURL(storedEmail);
+                    if (chatURL) {
+                        // Email still authorized - grant access and update chat URL
+                        updateChatURL(chatURL);
+                        hideAuthOverlay();
+                    } else {
+                        // Email no longer authorized - clear session and show auth
+                        sessionStorage.removeItem('bba_authenticated');
+                        sessionStorage.removeItem('bba_user_email');
+                        showAuthOverlay();
+                    }
+                } catch (error) {
+                    console.error('Error re-verifying email on load:', error);
+                    // On errors, clear session and require re-authentication
+                    sessionStorage.removeItem('bba_authenticated');
+                    sessionStorage.removeItem('bba_user_email');
+                    showAuthOverlay();
+                }
+            } else {
+                // No stored authentication - show auth overlay
+                showAuthOverlay();
+            }
+            
+            // Add enter key listener for email input
+            document.getElementById('email-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyEmail();
+                }
+            });
+        });
+        
+        async function verifyEmail() {
+            const email = document.getElementById('email-input').value.trim();
+            const errorMessage = document.getElementById('error-message');
+            const verifyButton = document.getElementById('verify-button');
+            
+            // Clear previous error
+            errorMessage.textContent = '';
+            
+            if (!email) {
+                errorMessage.textContent = 'Please enter your email address.';
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                errorMessage.textContent = 'Please enter a valid email address.';
+                return;
+            }
+            
+            // Show loading state
+            verifyButton.disabled = true;
+            verifyButton.innerHTML = '<span class="loading"></span>Verifying...';
+            
+            try {
+                const chatURL = await getChatURL(email);
+                if (chatURL) {
+                    // Email found - grant access and store email for re-verification
+                    sessionStorage.setItem('bba_authenticated', 'true');
+                    sessionStorage.setItem('bba_user_email', email);
+                    updateChatURL(chatURL);
+                    hideAuthOverlay();
+                } else {
+                    // Email not found or not authorized
+                    errorMessage.textContent = 'Access denied. Your email is not authorized for this service.';
+                }
+            } catch (error) {
+                console.error('Error verifying email:', error);
+                errorMessage.textContent = `Error: ${error.message || 'Failed to verify email'}`;
+            } finally {
+                // Reset button state
+                verifyButton.disabled = false;
+                verifyButton.innerHTML = 'Verify Access';
+            }
+        }
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        // Fetch chat URL from API (for authenticated users only)
+        async function getChatURL(email) {
+            try {
+                // Get current page URL
+                const currentUrl = window.location.href;
+                
+                console.log('Calling API with:', { email, url: currentUrl });
+
+                const response = await fetch(`${API_BASE_URL}/api/get-chat-config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify({ 
+                        email: email,
+                        url: currentUrl
+                    })
+                });
+                
+                console.log('API Response status:', response.status);
+                const data = await response.json();
+                console.log('API Response data:', data);
+                
+                if (!response.ok) {
+                    // Handle 403 Forbidden - user not authorized
+                    if (response.status === 403) {
+                        console.log('Access denied, user not authorized');
+                        return null;
+                    }
+                    throw new Error(data.message || 'Failed to get chat configuration');
+                }
+                
+                if (data.chatURL) {
+                    return data.chatURL;
+                } else {
+                    throw new Error(data.message || 'Chat configuration not available');
+                }
+            } catch (error) {
+                console.error('Error fetching chat URL:', error);
+                return null;
+            }
+        }
+        
+        // Update the chat iframe URL
+        function updateChatURL(chatURL) {
+            const chatIframe = document.querySelector('.chatbot-iframe');
+            if (chatIframe) {
+                chatIframe.src = chatURL;
+            }
+        }
+        
+        function hideAuthOverlay() {
+            document.getElementById('auth-overlay').style.display = 'none';
+        }
+        
+        function showAuthOverlay() {
+            document.getElementById('auth-overlay').style.display = 'flex';
+            // Clear any previous error messages
+            document.getElementById('error-message').textContent = '';
+            // Clear email input
+            document.getElementById('email-input').value = '';
+        }
+        
+        function closeChatbot() {
+            document.getElementById('chatbot-container').style.display = 'none';
+        }
+        
+        function openChatbot() {
+            document.getElementById('chatbot-container').style.display = 'flex';
+        }
+        
+        function downloadExtension() {
+            document.getElementById('extension-overlay').style.display = 'flex';
+        }
+        
+        function closeExtensionModal() {
+            document.getElementById('extension-overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
