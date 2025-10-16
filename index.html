@@ -44,6 +44,25 @@
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
+        
+        /* Mobile responsive chatbot */
+        @media (max-width: 768px) {
+            .chatbot-iframe {
+                width: 95vw !important;
+                height: 85vh !important;
+                max-width: 95vw;
+                max-height: 85vh;
+            }
+            .chatbot-wrapper {
+                width: 95vw;
+                height: 85vh;
+            }
+            .close-button {
+                top: 5px;
+                right: 5px;
+                z-index: 10001;
+            }
+        }
         .close-button {
             position: absolute;
             top: 10px;
