@@ -45,3 +45,4 @@ This is a static site that can be deployed to:
 - CDN
 
 Simply upload the files and configure your domain.
+# ess-opengpt-page
