@@ -19,7 +19,7 @@ For better development experience:
 
 ```bash
 # Python 3
-python -m http.server 8000
+python -m http.server 8000 latest
 
 # Python 2  
 python -m SimpleHTTPServer 8000
